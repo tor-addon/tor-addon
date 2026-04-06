@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tor · Admin</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07070d;--s1:#0c0d18;--s2:#10111c;--bd:#191a2c;--bd2:#20213a;
+  --ac:#7c6bff;--acd:rgba(124,107,255,.1);--acb:rgba(124,107,255,.18);
+  --tx:#e6e8ff;--tx2:#636790;--tx3:#2c2e47;
+  --g:#3dd68c;--gd:rgba(61,214,140,.1);--gb:rgba(61,214,140,.18);
+  --b:#5ba3f5;--bld:rgba(91,163,245,.1);--blb:rgba(91,163,245,.18);
+  --am:#f5c542;--amd:rgba(245,197,66,.1);--amb:rgba(245,197,66,.18);
+  --re:#f06a6a;--red:rgba(240,106,106,.1);--reb:rgba(240,106,106,.18);
+  --pu:#b47cf5;--pud:rgba(180,124,245,.1);--pub:rgba(180,124,245,.18);
+  --te:#38c7b0;--ted:rgba(56,199,176,.1);--teb:rgba(56,199,176,.18);
+  --r:13px;
+}
+body{background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,'Segoe UI',sans-serif;font-size:14px;line-height:1.5;min-height:100vh}
+
+/* ─ Header ─────────────────────────────────────────── */
+.hd{position:sticky;top:0;z-index:10;background:rgba(7,7,13,.9);backdrop-filter:blur(16px);border-bottom:1px solid var(--bd);height:52px;display:flex;align-items:center;padding:0 24px;gap:10px}
+.hd-logo{width:26px;height:26px;border-radius:6px;overflow:hidden;flex-shrink:0}
+.hd-logo img{width:100%;height:100%;object-fit:cover}
+.hd-name{font-size:15px;font-weight:800;letter-spacing:-.02em}
+.badge{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:2px 7px;border-radius:4px;background:var(--acd);color:var(--ac);border:1px solid var(--acb)}
+.sp{flex:1}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--g);box-shadow:0 0 5px var(--g);animation:pulse 2s infinite;flex-shrink:0}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+.up-pill{font-size:11px;font-weight:600;color:var(--tx2);background:var(--s2);border:1px solid var(--bd2);padding:4px 10px;border-radius:6px;font-variant-numeric:tabular-nums}
+.btn-rf{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--tx2);background:var(--s2);border:1px solid var(--bd2);border-radius:7px;padding:5px 12px;cursor:pointer;transition:all .15s;font-family:inherit}
+.btn-rf:hover{border-color:var(--ac);color:var(--ac);background:var(--acd)}
+.btn-rf svg{width:13px;height:13px}
+.btn-rf.loading svg{animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ─ Layout ─────────────────────────────────────────── */
+.wrap{max-width:1080px;margin:0 auto;padding:24px 20px 80px}
+.sec{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--tx3);margin:24px 0 10px}
+.sec:first-child{margin-top:0}
+
+/* ─ Grids ──────────────────────────────────────────── */
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.g2{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media(max-width:700px){.g3{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:460px){.g3,.g2{grid-template-columns:1fr}}
+
+/* ─ Card ───────────────────────────────────────────── */
+.card{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:18px 20px;transition:border-color .2s}
+.card:hover{border-color:var(--bd2)}
+.ic{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;flex-shrink:0}
+.ic svg{width:14px;height:14px}
+.ic-g {background:var(--gd);color:var(--g);border:1px solid var(--gb)}
+.ic-b {background:var(--bld);color:var(--b);border:1px solid var(--blb)}
+.ic-re{background:var(--red);color:var(--re);border:1px solid var(--reb)}
+.ic-pu{background:var(--pud);color:var(--pu);border:1px solid var(--pub)}
+.ic-te{background:var(--ted);color:var(--te);border:1px solid var(--teb)}
+.ic-ac{background:var(--acd);color:var(--ac);border:1px solid var(--acb)}
+.val{font-size:28px;font-weight:800;letter-spacing:-.03em;line-height:1.1;margin-bottom:6px;font-variant-numeric:tabular-nums}
+.lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--tx2)}
+.sub{font-size:11px;color:var(--tx3);margin-top:3px}
+
+/* ─ Stat badge (pour les %) ────────────────────────── */
+.stat-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:13px;font-weight:700;
+  padding:3px 9px;border-radius:6px;margin-top:8px;
+  font-variant-numeric:tabular-nums;
+}
+.sb-g {background:var(--gd);color:var(--g);border:1px solid var(--gb)}
+.sb-re{background:var(--red);color:var(--re);border:1px solid var(--reb)}
+.sb-b {background:var(--bld);color:var(--b);border:1px solid var(--blb)}
+
+/* ─ Split card ─────────────────────────────────────── */
+.card-split{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;transition:border-color .2s}
+.card-split:hover{border-color:var(--bd2)}
+.split-row{display:flex}
+.split-h{flex:1;padding:18px 20px;position:relative}
+.split-h+.split-h::before{content:'';position:absolute;left:0;top:14px;bottom:14px;width:1px;background:var(--bd)}
+
+/* ─ Tables ──────────────────────────────────────────── */
+.tbl{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden}
+.tbl-hd{display:grid;padding:9px 16px;border-bottom:1px solid var(--bd);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--tx3);gap:12px}
+.tbl-row{display:grid;padding:11px 16px;border-bottom:1px solid var(--bd);gap:12px;align-items:center;transition:background .1s}
+.tbl-row:last-child{border-bottom:none}
+.tbl-row:hover{background:var(--s2)}
+.tbl-empty{padding:28px 16px;text-align:center;color:var(--tx3);font-size:13px}
+
+/* Top recherches */
+.top-hd {grid-template-columns:30px 1fr minmax(100px,160px) 60px}
+.top-row{grid-template-columns:30px 1fr minmax(100px,160px) 60px}
+.r-rk{font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--tx3)}
+.r-rk.r1{color:var(--am)}.r-rk.r2{color:var(--tx2)}.r-rk.r3{color:var(--te)}
+.r-info{min-width:0}
+.r-title{font-size:13px;font-weight:600;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.r-id{font-size:11px;color:var(--tx3);font-family:'SF Mono','Fira Code',monospace;margin-top:1px}
+.r-bar-w{height:3px;background:var(--bd2);border-radius:2px;overflow:hidden}
+.r-bar{height:100%;background:var(--ac);border-radius:2px;transition:width .4s ease}
+.r-cnt{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--ac);text-align:right}
+
+/* Top sources */
+.src-hd {grid-template-columns:30px 1fr minmax(100px,160px) 60px}
+.src-row{grid-template-columns:30px 1fr minmax(100px,160px) 60px}
+.src-rk{font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--tx3)}
+.src-rk.r1{color:var(--am)}.src-rk.r2{color:var(--tx2)}.src-rk.r3{color:var(--te)}
+.src-name{font-size:13px;font-weight:600;color:var(--tx)}
+.src-bar-w{height:3px;background:var(--bd2);border-radius:2px;overflow:hidden}
+.src-bar{height:100%;background:var(--g);border-radius:2px;transition:width .4s ease}
+.src-cnt{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--g);text-align:right}
+</style>
+</head>
+<body>
+
+<div class="hd">
+  <div class="hd-logo"><img src="https://images.icon-icons.com/2552/PNG/512/tor_alpha_browser_logo_icon_152957.png" alt=""></div>
+  <span class="hd-name">Tor</span>
+  <span class="badge">Admin</span>
+  <div class="sp"></div>
+  <div class="dot" title="Live"></div>
+  <div class="up-pill" id="up">—</div>
+  <button class="btn-rf" id="btn-rf" onclick="refresh()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+      <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+    </svg>
+    Rafraîchir
+  </button>
+</div>
+
+<div class="wrap">
+
+  <!-- Activité -->
+  <div class="sec">Activité — depuis le démarrage</div>
+  <div class="g3">
+
+    <div class="card">
+      <div class="ic ic-g"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+      <div class="val" id="v-inst">—</div>
+      <div class="lbl">Installations</div>
+      <div class="sub">Configs uniques</div>
+    </div>
+
+    <div class="card">
+      <div class="ic ic-b"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+      <div class="val" id="v-srch">—</div>
+      <div class="lbl">Recherches</div>
+      <div class="sub">Requêtes stream reçues</div>
+    </div>
+
+    <div class="card">
+      <div class="ic ic-pu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
+      <div class="val" id="v-play">—</div>
+      <div class="lbl">Lectures</div>
+      <div class="stat-badge sb-re" id="v-fail-badge" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span id="v-fail">0</span> échouées
+      </div>
+    </div>
+
+  </div>
+
+  <!-- DB + Perf -->
+  <div class="g2" style="margin-top:10px">
+
+    <!-- DB gauche -->
+    <div class="card-split">
+      <div class="split-row">
+        <div class="split-h">
+          <div class="ic ic-ac" style="margin-bottom:8px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg></div>
+          <div class="val" id="v-tor" style="font-size:22px">—</div>
+          <div class="lbl">Torrents DB</div>
+        </div>
+        <div class="split-h">
+          <div class="ic ic-te" style="margin-bottom:8px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+          <div class="val" id="v-ddl" style="font-size:22px">—</div>
+          <div class="lbl">DDL DB</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cache + Latence droite -->
+    <div class="card-split">
+      <div class="split-row">
+        <div class="split-h">
+          <div class="ic ic-g" style="margin-bottom:8px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+          <div style="display:flex;align-items:baseline;gap:8px">
+            <div class="val" id="v-cached" style="font-size:22px">—</div>
+            <span class="stat-badge sb-g" id="cache-pct-badge" style="font-size:11px">—</span>
+          </div>
+          <div class="lbl">Cache AllDebrid</div>
+        </div>
+        <div class="split-h">
+          <div class="ic ic-b" style="margin-bottom:8px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+          <div class="val" id="v-lat" style="font-size:22px">—</div>
+          <div class="lbl">Latence moy.</div>
+          <div class="sub">Pipeline (hors cache)</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Top recherches -->
+  <div class="sec">Top recherches</div>
+  <div class="tbl">
+    <div class="tbl-hd top-hd">
+      <div>#</div><div>Titre</div><div>Popularité</div><div style="text-align:right">Req.</div>
+    </div>
+    <div id="top-body"><div class="tbl-empty">Aucune recherche enregistrée</div></div>
+  </div>
+
+  <!-- Top sources -->
+  <div class="sec">Top sources — lectures réussies</div>
+  <div class="tbl">
+    <div class="tbl-hd src-hd">
+      <div>#</div><div>Source</div><div>Volume</div><div style="text-align:right">Lectures</div>
+    </div>
+    <div id="src-body"><div class="tbl-empty">Aucune lecture enregistrée</div></div>
+  </div>
+
+</div>
+
+<script>
+const KEY = location.pathname.split('/')[2]||'';
+const API = '/admin/'+KEY+'/data';
+const RK  = ['r1','r2','r3'];
+
+async function refresh(){
+  const btn=document.getElementById('btn-rf');
+  btn.classList.add('loading');
+  try{
+    const r=await fetch(API);
+    if(!r.ok) throw r.status;
+    apply(await r.json());
+  }catch(e){console.warn(e)}
+  btn.classList.remove('loading');
+}
+
+function apply(d){
+  // header uptime
+  set('up', d.uptime);
+
+  // activité
+  set('v-inst', fmt(d.installs));
+  set('v-srch', fmt(d.searches));
+  set('v-play', fmt(d.playbacks));
+
+  // lectures échouées — badge visible seulement si > 0
+  const fail = d.playbacks_failed || 0;
+  const failBadge = document.getElementById('v-fail-badge');
+  if(fail > 0){
+    set('v-fail', fmt(fail));
+    if(failBadge) failBadge.style.display = 'inline-flex';
+  } else {
+    if(failBadge) failBadge.style.display = 'none';
+  }
+
+  // latence
+  set('v-lat', d.avg_latency_ms ? d.avg_latency_ms+'ms' : '—');
+
+  // DB
+  set('v-tor', d.tor_count  >= 0 ? fmt(d.tor_count)  : '—');
+  set('v-ddl', d.ddl_count  >= 0 ? fmt(d.ddl_count)  : '—');
+
+  // cache bar
+  set('v-cached', d.cached_count >= 0 ? fmt(d.cached_count) : '—');
+  if(d.cached_count >= 0 && d.tor_count > 0){
+    const p = Math.round(d.cached_count/d.tor_count*100);
+    const el = document.getElementById('cache-fill');
+    if(el) el.style.width = p+'%';
+    set('cache-pct-badge', p+'%');
+  }
+
+  renderTop(d.top_searches||[]);
+  renderSources(d.top_sources||[]);
+}
+
+function renderTop(rows){
+  const el=document.getElementById('top-body');
+  if(!rows.length){el.innerHTML='<div class="tbl-empty">Aucune recherche enregistrée</div>';return}
+  const max=rows[0]?.count||1;
+  el.innerHTML=rows.map((r,i)=>`
+    <div class="tbl-row top-row">
+      <div class="r-rk ${RK[i]||''}">${i+1}</div>
+      <div class="r-info">
+        <div class="r-title">${esc(r.title||r.id)}</div>
+        ${r.title?`<div class="r-id">${esc(r.id)}</div>`:''}
+      </div>
+      <div class="r-bar-w"><div class="r-bar" style="width:${Math.round(r.count/max*100)}%"></div></div>
+      <div class="r-cnt">${fmt(r.count)}</div>
+    </div>`).join('');
+}
+
+function renderSources(rows){
+  const el=document.getElementById('src-body');
+  if(!rows.length){el.innerHTML='<div class="tbl-empty">Aucune lecture enregistrée</div>';return}
+  const max=rows[0]?.count||1;
+  el.innerHTML=rows.map((r,i)=>`
+    <div class="tbl-row src-row">
+      <div class="src-rk ${RK[i]||''}">${i+1}</div>
+      <div class="src-name">${esc(r.source)}</div>
+      <div class="src-bar-w"><div class="src-bar" style="width:${Math.round(r.count/max*100)}%"></div></div>
+      <div class="src-cnt">${fmt(r.count)}</div>
+    </div>`).join('');
+}
+
+function set(id,v){const e=document.getElementById(id);if(e&&v!=null)e.textContent=v}
+function fmt(n){return typeof n==='number'?n.toLocaleString('fr-FR'):String(n||'—')}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+refresh();
+setInterval(refresh,30000);
+</script>
+</body>
+</html>
