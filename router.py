@@ -122,8 +122,9 @@ async def manifest_root():
 
 @router.get("/{b64}/manifest.json")
 async def manifest(request: Request, b64: str):
+    from settings import BASE_URL
     stats.record_install(b64)
-    base_url = str(request.base_url).rstrip("/")
+    base_url = BASE_URL or str(request.base_url).rstrip("/")
     return JSONResponse(_build_manifest(base_url, b64), headers=_CORS)
 
 

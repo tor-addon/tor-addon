@@ -23,7 +23,7 @@ import logging
 
 import httpx
 
-from settings import ALLDEBRID_BASE_URL, ALLDEBRID_AGENT, ALLDEBRID_BATCH_SIZE
+from settings import ALLDEBRID_BASE_URL, ALLDEBRID_AGENT, ALLDEBRID_BATCH_SIZE, ALLDEBRID_PROXY
 from utils.episode_selector import find_best_file
 
 logger = logging.getLogger(__name__)
@@ -60,12 +60,13 @@ class AllDebridClient:
         self.api_key = api_key
         self.client  = httpx.AsyncClient(
             limits=httpx.Limits(
-                max_connections=40,
-                max_keepalive_connections=8,
-                keepalive_expiry=30.0,
+                max_connections=20,
+                max_keepalive_connections=10,
+                keepalive_expiry=60.0,
             ),
-            timeout=15,
+            timeout=httpx.Timeout(connect=5.0, read=12.0, write=5.0, pool=5.0),
             follow_redirects=True,
+            proxy=ALLDEBRID_PROXY or None,
         )
 
     # ── Cache check ──────────────────────────────────────────────────────────

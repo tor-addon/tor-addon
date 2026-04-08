@@ -112,3 +112,25 @@ LOG_LEVEL         = os.environ.get("LOG_LEVEL", "INFO")
 # Définir ADMIN_KEY dans les variables d'environnement Render pour activer /admin
 # Ex: ADMIN_KEY=monmotdepasse → accessible sur /admin/monmotdepasse
 ADMIN_KEY         = os.environ.get("ADMIN_KEY", "")
+
+# ── Public URL ────────────────────────────────────────────────────────────────
+# Forcer l'URL publique pour éviter que le reverse proxy génère du http://
+# Ex: BASE_URL=https://tor-sodn5.ondigitalocean.app
+BASE_URL          = os.environ.get("BASE_URL", "").rstrip("/")
+
+# ── Proxy AllDebrid ───────────────────────────────────────────────────────────
+# Ex: socks5://user:pass@host:port  ou  http://user:pass@host:port
+# Laisser vide pour connexion directe
+def _parse_proxy(raw: str) -> str:
+    """Accepte IP:PORT:USER:PASS ou socks5://user:pass@ip:port"""
+    if not raw:
+        return ""
+    if raw.startswith(("http://", "https://", "socks5://", "socks4://")):
+        return raw
+    parts = raw.split(":")
+    if len(parts) == 4:
+        ip, port, user, password = parts
+        return f"socks5://{user}:{password}@{ip}:{port}"
+    return raw
+
+ALLDEBRID_PROXY   = _parse_proxy(os.environ.get("ALLDEBRID_PROXY", ""))
