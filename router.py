@@ -40,6 +40,12 @@ from utils.admin_stats import stats
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
+
+@router.get("/health")
+async def health():
+    return {"status": "ok"}
+
+
 _CORS = {
     "Access-Control-Allow-Origin":  "*",
     "Access-Control-Allow-Headers": "*",

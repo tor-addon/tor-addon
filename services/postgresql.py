@@ -138,9 +138,19 @@ class PostgreSQLClient:
 
     @classmethod
     async def init_pools(cls) -> None:
-        cls._tor_pool = await asyncpg.create_pool(TOR_PG_DSN, min_size=1, max_size=5)
-        cls._ddl_pool = await asyncpg.create_pool(DDL_PG_DSN, min_size=1, max_size=5)
-        logger.info("PostgreSQL │ pools initialisés (tor=%s ddl=%s)", TOR_PG_DSN.split("/")[-1].split("?")[0], DDL_PG_DSN.split("/")[-1].split("?")[0])
+        if not TOR_PG_DSN or not DDL_PG_DSN:
+            logger.error("PostgreSQL │ TOR_PG_DSN ou DDL_PG_DSN non défini — pools non initialisés")
+            return
+        try:
+            cls._tor_pool = await asyncpg.create_pool(TOR_PG_DSN, min_size=1, max_size=5, timeout=10)
+            cls._ddl_pool = await asyncpg.create_pool(DDL_PG_DSN, min_size=1, max_size=5, timeout=10)
+            logger.info("PostgreSQL │ pools initialisés (tor=%s ddl=%s)",
+                        TOR_PG_DSN.split("/")[-1].split("?")[0],
+                        DDL_PG_DSN.split("/")[-1].split("?")[0])
+        except Exception as exc:
+            logger.error("PostgreSQL │ échec init pools: %s — l'app démarre sans DB", exc)
+            cls._tor_pool = None
+            cls._ddl_pool = None
 
     @classmethod
     async def close_pools(cls) -> None:

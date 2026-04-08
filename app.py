@@ -18,6 +18,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from router import router
 from services.postgresql import PostgreSQLClient
@@ -36,6 +37,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title=ADDON_NAME, lifespan=lifespan, docs_url=None, redoc_url=None)
+
+app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
 
 app.add_middleware(
     CORSMiddleware,
