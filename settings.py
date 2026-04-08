@@ -22,7 +22,7 @@ DDL_PG_DSN = os.environ.get("DDL_PG_DSN", "")
 
 # ── AllDebrid ─────────────────────────────────────────────────────────────────
 ALLDEBRID_BASE_URL   = "https://api.alldebrid.com/v4"
-ALLDEBRID_AGENT      = "TorAddon"
+ALLDEBRID_AGENT      = "Tor"
 ALLDEBRID_BATCH_SIZE = 80
 
 # ── TMDB ──────────────────────────────────────────────────────────────────────
@@ -122,7 +122,7 @@ BASE_URL          = os.environ.get("BASE_URL", "").rstrip("/")
 # Ex: socks5://user:pass@host:port  ou  http://user:pass@host:port
 # Laisser vide pour connexion directe
 def _parse_proxy(raw: str) -> str:
-    """Accepte IP:PORT:USER:PASS ou socks5://user:pass@ip:port"""
+    """Accepte IP:PORT:USER:PASS ou http://user:pass@ip:port"""
     if not raw:
         return ""
     if raw.startswith(("http://", "https://", "socks5://", "socks4://")):
@@ -130,7 +130,7 @@ def _parse_proxy(raw: str) -> str:
     parts = raw.split(":")
     if len(parts) == 4:
         ip, port, user, password = parts
-        return f"socks5://{user}:{password}@{ip}:{port}"
+        return f"http://{user}:{password}@{ip}:{port}"
     return raw
 
 ALLDEBRID_PROXY   = _parse_proxy(os.environ.get("ALLDEBRID_PROXY", ""))

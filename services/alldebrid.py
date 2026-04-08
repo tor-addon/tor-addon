@@ -45,10 +45,11 @@ async def _retry(coro_fn):
     for attempt in range(1, _RETRY_ATTEMPTS + 1):
         try:
             return await coro_fn()
-        except (httpx.ConnectError, httpx.TimeoutException) as exc:
+        except (httpx.ConnectError, httpx.TimeoutException, httpx.ProxyError, OSError, UnboundLocalError) as exc:
             last_exc = exc
             if attempt < _RETRY_ATTEMPTS:
-                logger.warning("AllDebrid │ network error (attempt %d/%d): %s", attempt, _RETRY_ATTEMPTS, exc)
+                logger.warning("AllDebrid │ network error (attempt %d/%d): %s: %s",
+                               attempt, _RETRY_ATTEMPTS, type(exc).__name__, exc)
                 await asyncio.sleep(_RETRY_DELAY)
     raise last_exc
 
@@ -93,7 +94,7 @@ class AllDebridClient:
             try:
                 await self._check_batch(batch, hash_map)
             except Exception as exc:
-                logger.error("AllDebrid │ batch %d failed: %s", idx, exc)
+                logger.error("AllDebrid │ batch %d failed: %s: %s", idx, type(exc).__name__, exc)
                 _mark(batch, hash_map, False)
 
         await asyncio.gather(*(_safe_batch(b, i) for i, b in enumerate(batches)))
@@ -254,8 +255,11 @@ class AllDebridClient:
         payload = {"agent": ALLDEBRID_AGENT, "apikey": self.api_key, "magnets[]": batch}
 
         async def _call():
-            r = await self.client.post(f"{ALLDEBRID_BASE_URL}/magnet/upload", data=payload)
-            r.raise_for_status()
+            try:
+                r = await self.client.post(f"{ALLDEBRID_BASE_URL}/magnet/upload", data=payload)
+            except Exception as e:
+                print(e)
+            #r.raise_for_status()
             return r.json()
 
         body = await _retry(_call)
